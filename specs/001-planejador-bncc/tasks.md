@@ -20,33 +20,33 @@ Este documento organiza as tarefas de implementação por dependência em quatro
 **Objetivo**: Estabelecer a infraestrutura do monorepo pnpm, banco PostgreSQL no Docker, ORM Prisma com migrações e seed idempotente, autenticação JWT com cookies HttpOnly e serviço de catálogo da BNCC com busca e filtros.
 
 ### Infraestrutura, Scripts e Ambiente
-- [ ] T001 [PhaseA] Configurar `pnpm-workspace.yaml` e criar `package.json` na raiz com workspaces `apps/*` e scripts unificados `dev`, `lint`, `typecheck`, `test`, `test:integration` e `build` em `package.json`.
-- [ ] T002 [PhaseA] Criar `docker-compose.yml` na raiz contendo serviço PostgreSQL 16 Alpine com porta 5432 exposta, volume persistente e healthcheck em `docker-compose.yml`.
-- [ ] T003 [P] [PhaseA] Inicializar workspace backend `apps/api` com NestJS, TypeScript estrito, dependências essenciais (`@nestjs/common`, `@nestjs/jwt`, `@nestjs/passport`, `passport-jwt`, `cookie-parser`, `bcrypt`, `zod`, `@prisma/client`) e scripts locais em `apps/api/package.json` e `apps/api/tsconfig.json`.
-- [ ] T004 [P] [PhaseA] Inicializar workspace frontend `apps/web` com Next.js 15 App Router, TypeScript estrito, dependências essenciais (`react-markdown`, `rehype-sanitize`) e scripts locais em `apps/web/package.json` e `apps/web/tsconfig.json`.
-- [ ] T005 [P] [PhaseA] Criar arquivos de configuração de ambiente de exemplo `apps/api/.env.example` e `apps/web/.env.example` documentando portas (3001 e 3000), `DATABASE_URL`, segredos JWT, `COOKIE_SECURE=false` para localhost e flags do n8n.
+- [X] T001 [PhaseA] Configurar `pnpm-workspace.yaml` e criar `package.json` na raiz com workspaces `apps/*` e scripts unificados `dev`, `lint`, `typecheck`, `test`, `test:integration` e `build` em `package.json`.
+- [X] T002 [PhaseA] Criar `docker-compose.yml` na raiz contendo serviço PostgreSQL 16 Alpine com porta 5432 exposta, volume persistente e healthcheck em `docker-compose.yml`.
+- [X] T003 [P] [PhaseA] Inicializar workspace backend `apps/api` com NestJS, TypeScript estrito, dependências essenciais (`@nestjs/common`, `@nestjs/jwt`, `@nestjs/passport`, `passport-jwt`, `cookie-parser`, `bcrypt`, `zod`, `@prisma/client`) e scripts locais em `apps/api/package.json` e `apps/api/tsconfig.json`.
+- [X] T004 [P] [PhaseA] Inicializar workspace frontend `apps/web` com Next.js 15 App Router, TypeScript estrito, dependências essenciais (`react-markdown`, `rehype-sanitize`) e scripts locais em `apps/web/package.json` e `apps/web/tsconfig.json`.
+- [X] T005 [P] [PhaseA] Criar arquivos de configuração de ambiente de exemplo `apps/api/.env.example` e `apps/web/.env.example` documentando portas (3001 e 3000), `DATABASE_URL`, segredos JWT, `COOKIE_SECURE=false` para localhost e flags do n8n.
 
 ### Banco de Dados, Modelagem e Seed
-- [ ] T006 [PhaseA] Configurar Prisma Schema com os modelos `User`, `RefreshToken`, `Habilidade`, `Plan`, `PlanHabilidade` e `AiRun` com todas as restrições relacionais e índices descritos em `specs/001-planejador-bncc/data-model.md` em `apps/api/prisma/schema.prisma`.
-- [ ] T007 [PhaseA] Gerar migração inicial do Prisma e script de criação das tabelas relacionais em `apps/api/prisma/migrations/`.
-- [ ] T008 [PhaseA] Implementar script de seed idempotente que realiza `upsert` das contas de demonstração (`ana@demo.bncc.br` / Profª Ana Souza e `marcos@demo.bncc.br` / Prof. Marcos Lima) com senha `demo123` criptografada, e `upsert` das 5 habilidades canônicas a partir de `docs/data/bncc-recorte.json` em `apps/api/prisma/seed.ts`.
-- [ ] T009 [PhaseA] Implementar `PrismaService` e `PrismaModule` para injeção de dependência e gerenciamento do ciclo de vida da conexão do banco em `apps/api/src/prisma/prisma.service.ts` e `apps/api/src/prisma/prisma.module.ts`.
+- [X] T006 [PhaseA] Configurar Prisma Schema com os modelos `User`, `RefreshToken`, `Habilidade`, `Plan`, `PlanHabilidade` e `AiRun` com todas as restrições relacionais e índices descritos em `specs/001-planejador-bncc/data-model.md` em `apps/api/prisma/schema.prisma`.
+- [X] T007 [PhaseA] Gerar migração inicial do Prisma e script de criação das tabelas relacionais em `apps/api/prisma/migrations/`.
+- [X] T008 [PhaseA] Implementar script de seed idempotente que realiza `upsert` das contas de demonstração (`ana@demo.bncc.br` / Profª Ana Souza e `marcos@demo.bncc.br` / Prof. Marcos Lima) com senha `demo123` criptografada, e `upsert` das 5 habilidades canônicas a partir de `docs/data/bncc-recorte.json` em `apps/api/prisma/seed.ts`.
+- [X] T009 [PhaseA] Implementar `PrismaService` e `PrismaModule` para injeção de dependência e gerenciamento do ciclo de vida da conexão do banco em `apps/api/src/prisma/prisma.service.ts` e `apps/api/src/prisma/prisma.module.ts`.
 
 ### Módulo de Autenticação (`apps/api/src/auth`)
-- [ ] T010 [PhaseA] Criar DTOs de autenticação com validação `LoginDto` (`email` válido e `password` obrigatório) em `apps/api/src/auth/dto/login.dto.ts`.
-- [ ] T011 [PhaseA] Implementar `AuthService` com lógica de verificação de senha por hash, emissão de Access Token curto (15 min), geração de Refresh Token criptograficamente seguro (7 dias), gravação exclusiva do hash do refresh token em `RefreshToken` e revogação no logout em `apps/api/src/auth/auth.service.ts`.
-- [ ] T012 [PhaseA] Configurar `JwtStrategy` e `JwtAuthGuard` para proteção de rotas privadas e injeção do usuário logado na requisição em `apps/api/src/auth/jwt.strategy.ts` e `apps/api/src/auth/jwt-auth.guard.ts`.
-- [ ] T013 [PhaseA] Implementar `AuthController` disponibilizando `POST /auth/login` (define cookie `HttpOnly` com `SameSite=Lax`), `POST /auth/refresh` (com rotação de token e verificação do header `x-requested-with`), `POST /auth/logout` (revoga hash e expira cookie) e `GET /auth/me` em `apps/api/src/auth/auth.controller.ts`.
-- [ ] T014 [PhaseA] Configurar bootstrap da API com CORS restrito à origem web (`http://localhost:3000`), `cookieParser()`, `ValidationPipe` global e prefixo de rotas em `apps/api/src/main.ts`.
+- [X] T010 [PhaseA] Criar DTOs de autenticação com validação `LoginDto` (`email` válido e `password` obrigatório) em `apps/api/src/auth/dto/login.dto.ts`.
+- [X] T011 [PhaseA] Implementar `AuthService` com lógica de verificação de senha por hash, emissão de Access Token curto (15 min), geração de Refresh Token criptograficamente seguro (7 dias), gravação exclusiva do hash do refresh token em `RefreshToken` e revogação no logout em `apps/api/src/auth/auth.service.ts`.
+- [X] T012 [PhaseA] Configurar `JwtStrategy` e `JwtAuthGuard` para proteção de rotas privadas e injeção do usuário logado na requisição em `apps/api/src/auth/jwt.strategy.ts` e `apps/api/src/auth/jwt-auth.guard.ts`.
+- [X] T013 [PhaseA] Implementar `AuthController` disponibilizando `POST /auth/login` (define cookie `HttpOnly` com `SameSite=Lax`), `POST /auth/refresh` (com rotação de token e verificação do header `x-requested-with`), `POST /auth/logout` (revoga hash e expira cookie) e `GET /auth/me` em `apps/api/src/auth/auth.controller.ts`.
+- [X] T014 [PhaseA] Configurar bootstrap da API com CORS restrito à origem web (`http://localhost:3000`), `cookieParser()`, `ValidationPipe` global e prefixo de rotas em `apps/api/src/main.ts`.
 
 ### Módulo do Catálogo BNCC (`apps/api/src/bncc`)
-- [ ] T015 [PhaseA] Criar DTO de filtros para consulta de habilidades `GetHabilidadesQueryDto` (`search`, `nivel`, `ano`, `eixo`) em `apps/api/src/bncc/dto/get-habilidades-query.dto.ts`.
-- [ ] T016 [PhaseA] Implementar `BnccService` com métodos para busca textual combinada (`codigo` e `descricao`) e filtros por nível, ano escolar e eixo temático em `apps/api/src/bncc/bncc.service.ts`.
-- [ ] T017 [PhaseA] Implementar `BnccController` disponibilizando `GET /bncc/habilidades` e `GET /bncc/habilidades/:id` protegido por `JwtAuthGuard` em `apps/api/src/bncc/bncc.controller.ts`.
+- [X] T015 [PhaseA] Criar DTO de filtros para consulta de habilidades `GetHabilidadesQueryDto` (`search`, `nivel`, `ano`, `eixo`) em `apps/api/src/bncc/dto/get-habilidades-query.dto.ts`.
+- [X] T016 [PhaseA] Implementar `BnccService` com métodos para busca textual combinada (`codigo` e `descricao`) e filtros por nível, ano escolar e eixo temático em `apps/api/src/bncc/bncc.service.ts`.
+- [X] T017 [PhaseA] Implementar `BnccController` disponibilizando `GET /bncc/habilidades` e `GET /bncc/habilidades/:id` protegido por `JwtAuthGuard` em `apps/api/src/bncc/bncc.controller.ts`.
 
 ### Testes Críticos da Fase A
-- [ ] T018 [P] [PhaseA] Criar testes automatizados de integração para o fluxo de autenticação (login válido, login com credenciais inválidas 401, renovação de token, logout e consulta `/auth/me`) em `apps/api/test/auth.e2e-spec.ts`.
-- [ ] T019 [P] [PhaseA] Criar testes automatizados de integração para o catálogo BNCC (listagem total, filtros por ano/nível, busca por termo do código e 404 em ID inexistente) em `apps/api/test/bncc.e2e-spec.ts`.
+- [X] T018 [P] [PhaseA] Criar testes automatizados de integração para o fluxo de autenticação (login válido, login com credenciais inválidas 401, renovação de token, logout e consulta `/auth/me`) em `apps/api/test/auth.e2e-spec.ts`.
+- [X] T019 [P] [PhaseA] Criar testes automatizados de integração para o catálogo BNCC (listagem total, filtros por ano/nível, busca por termo do código e 404 em ID inexistente) em `apps/api/test/bncc.e2e-spec.ts`.
 
 **Critério de Conclusão da Fase A**:
 - Containers sobem via `docker compose up -d postgres`.
@@ -60,21 +60,21 @@ Este documento organiza as tarefas de implementação por dependência em quatro
 **Objetivo**: Implementar o cliente HTTP n8n em estrita conformidade com `docs/contracts/n8n.md`, timeout configurável de 60s, zero retentativas automáticas, validação de resposta com Zod, adaptador mock local determinístico, orquestração transacional de `AiRun` e controle rigoroso de ownership com resposta 404 para planos alheios.
 
 ### Cliente n8n e Adaptador Mock (`apps/api/src/ai`)
-- [ ] T020 [PhaseB] Criar schemas Zod e DTOs de integração com n8n (`N8nGenerateRequestDto` e `N8nResponseSchema` validando `success: true`, `sessao`, `habilidade`, `answer` Markdown com min 10 caracteres e `format: "markdown"`) em `apps/api/src/ai/dto/n8n-integration.dto.ts`.
-- [ ] T021 [PhaseB] Implementar cliente HTTP n8n com envio de header `x-api-key`, header de rastreabilidade `x-request-id`, cancelamento estrito por `AbortController` baseado em `N8N_TIMEOUT_MS` (60000ms), e política expressa de zero retries automáticos (`retries: 0`) em `apps/api/src/ai/n8n-client.service.ts`.
-- [ ] T022 [PhaseB] Implementar adaptador Mock local determinístico para geração de planos de aula estruturados em Markdown sem dependência de serviços externos, com suporte à latência configurável e simulação determinística de erros de teste em `apps/api/src/ai/n8n-mock.adapter.ts`.
-- [ ] T023 [PhaseB] Implementar `AiService` orquestrador que seleciona entre Mock ou Cliente Real (baseado em `N8N_MOCK_ENABLED`), formata múltiplas habilidades no formato `"CODIGO — Descrição"`, e orquestra o ciclo de vida de `AiRun` em `apps/api/src/ai/ai.service.ts`.
+- [X] T020 [PhaseB] Criar schemas Zod e DTOs de integração com n8n (`N8nGenerateRequestDto` e `N8nResponseSchema` validando `success: true`, `sessao`, `habilidade`, `answer` Markdown com min 10 caracteres e `format: "markdown"`) em `apps/api/src/ai/dto/n8n-integration.dto.ts`.
+- [X] T021 [PhaseB] Implementar cliente HTTP n8n com envio de header `x-api-key`, header de rastreabilidade `x-request-id`, cancelamento estrito por `AbortController` baseado em `N8N_TIMEOUT_MS` (60000ms), e política expressa de zero retries automáticos (`retries: 0`) em `apps/api/src/ai/n8n-client.service.ts`.
+- [X] T022 [PhaseB] Implementar adaptador Mock local determinístico para geração de planos de aula estruturados em Markdown sem dependência de serviços externos, com suporte à latência configurável e simulação determinística de erros de teste em `apps/api/src/ai/n8n-mock.adapter.ts`.
+- [X] T023 [PhaseB] Implementar `AiService` orquestrador que seleciona entre Mock ou Cliente Real (baseado em `N8N_MOCK_ENABLED`), formata múltiplas habilidades no formato `"CODIGO — Descrição"`, e orquestra o ciclo de vida de `AiRun` em `apps/api/src/ai/ai.service.ts`.
 
 ### Módulo de Planos e Atomicidade Transacional (`apps/api/src/plans`)
-- [ ] T024 [PhaseB] Criar DTOs de planos: `GeneratePlanDto` (validando `habilidadeIds` com min 1 item, `duracao` inteiro positivo, `recursosDigitais` boolean e `instrucao` string) e `UpdatePlanDto` (validando `titulo` e `markdownContent` com texto não vazio) em `apps/api/src/plans/dto/generate-plan.dto.ts` e `apps/api/src/plans/dto/update-plan.dto.ts`.
-- [ ] T025 [PhaseB] Implementar método de geração em `PlansService`: cria `AiRun` como `PENDING`; em sucesso, executa transação relacional atômica (`prisma.$transaction`) que atualiza `AiRun` para `SUCCEEDED`, grava `Plan` com `status: RASCUNHO`, `aiAssisted: true` e vínculos em `PlanHabilidade`; em falha/timeout, atualiza `AiRun` para `FAILED` e NÃO cria nenhum registro de plano em `apps/api/src/plans/plans.service.ts`.
-- [ ] T026 [PhaseB] Implementar métodos de consulta e edição em `PlansService` (`findAllByUser`, `findOneByUser`, `updateByUser`) aplicando obrigatoriamente o filtro `where: { id, userId: currentUser.id }` e lançando `NotFoundException` (HTTP 404) quando o registro não existir ou pertencer a outro professor em `apps/api/src/plans/plans.service.ts`.
-- [ ] T027 [PhaseB] Implementar `PlansController` com endpoints `POST /plans/generate`, `GET /plans`, `GET /plans/:id` e `PUT /plans/:id`, todos protegidos por `JwtAuthGuard` em `apps/api/src/plans/plans.controller.ts`.
+- [X] T024 [PhaseB] Criar DTOs de planos: `GeneratePlanDto` (validando `habilidadeIds` com min 1 item, `duracao` inteiro positivo, `recursosDigitais` boolean e `instrucao` string) e `UpdatePlanDto` (validando `titulo` e `markdownContent` com texto não vazio) em `apps/api/src/plans/dto/generate-plan.dto.ts` e `apps/api/src/plans/dto/update-plan.dto.ts`.
+- [X] T025 [PhaseB] Implementar método de geração em `PlansService`: cria `AiRun` como `PENDING`; em sucesso, executa transação relacional atômica (`prisma.$transaction`) que atualiza `AiRun` para `SUCCEEDED`, grava `Plan` com `status: RASCUNHO`, `aiAssisted: true` e vínculos em `PlanHabilidade`; em falha/timeout, atualiza `AiRun` para `FAILED` e NÃO cria nenhum registro de plano em `apps/api/src/plans/plans.service.ts`.
+- [X] T026 [PhaseB] Implementar métodos de consulta e edição em `PlansService` (`findAllByUser`, `findOneByUser`, `updateByUser`) aplicando obrigatoriamente o filtro `where: { id, userId: currentUser.id }` e lançando `NotFoundException` (HTTP 404) quando o registro não existir ou pertencer a outro professor em `apps/api/src/plans/plans.service.ts`.
+- [X] T027 [PhaseB] Implementar `PlansController` com endpoints `POST /plans/generate`, `GET /plans`, `GET /plans/:id` e `PUT /plans/:id`, todos protegidos por `JwtAuthGuard` em `apps/api/src/plans/plans.controller.ts`.
 
 ### Testes Críticos da Fase B
-- [ ] T028 [P] [PhaseB] Criar testes unitários para o cliente n8n e mock cobrindo validação de schema Zod, cancelamento por timeout aos 60s e ausência de retentativas em `apps/api/test/n8n-client.spec.ts`.
-- [ ] T029 [P] [PhaseB] Criar testes de integração verificando a atomicidade relacional: em caso de sucesso da IA o plano é salvo em `RASCUNHO` com `AiRun` em `SUCCEEDED`; em caso de erro da IA, zero planos são gravados e `AiRun` fica como `FAILED` em `apps/api/test/plans-generation.e2e-spec.ts`.
-- [ ] T030 [P] [PhaseB] Criar testes de integração verificando a garantia estrita de privacidade docente: Professor 1 cria plano e Professor 2 recebe HTTP 404 ao tentar `GET /plans/:id` ou `PUT /plans/:id` em `apps/api/test/plans-ownership.e2e-spec.ts`.
+- [X] T028 [P] [PhaseB] Criar testes unitários para o cliente n8n e mock cobrindo validação de schema Zod, cancelamento por timeout aos 60s e ausência de retentativas em `apps/api/test/n8n-client.spec.ts`.
+- [X] T029 [P] [PhaseB] Criar testes de integração verificando a atomicidade relacional: em caso de sucesso da IA o plano é salvo em `RASCUNHO` com `AiRun` em `SUCCEEDED`; em caso de erro da IA, zero planos são gravados e `AiRun` fica como `FAILED` em `apps/api/test/plans-generation.e2e-spec.ts`.
+- [X] T030 [P] [PhaseB] Criar testes de integração verificando a garantia estrita de privacidade docente: Professor 1 cria plano e Professor 2 recebe HTTP 404 ao tentar `GET /plans/:id` ou `PUT /plans/:id` em `apps/api/test/plans-ownership.e2e-spec.ts`.
 
 **Critério de Conclusão da Fase B**:
 - Geração assistida cria plano em `RASCUNHO` com mock ou n8n real.
