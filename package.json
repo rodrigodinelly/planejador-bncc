@@ -1,0 +1,13 @@
+{
+  "name": "planejador-bncc-root",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --parallel --filter api --filter web dev",
+    "lint": "pnpm --recursive run lint",
+    "typecheck": "pnpm --recursive run typecheck",
+    "test": "pnpm --recursive run test",
+    "test:integration": "pnpm --filter api test:integration",
+    "build": "pnpm --recursive run build"
+  },
+  "packageManager": "pnpm@12.8.1"
+}
